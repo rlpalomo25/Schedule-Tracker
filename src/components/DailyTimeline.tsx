@@ -28,17 +28,20 @@ import {
   Calendar,
   CheckCircle2,
   SlidersHorizontal,
+  Printer,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface DailyTimelineProps {
   onSelectEmployee: (emp: Employee) => void;
   onLogAttendanceForEmployee: (emp: Employee) => void;
+  onExportPdf?: () => void;
 }
 
 export const DailyTimeline: React.FC<DailyTimelineProps> = ({
   onSelectEmployee,
   onLogAttendanceForEmployee,
+  onExportPdf,
 }) => {
   const {
     employees,
@@ -565,6 +568,19 @@ export const DailyTimeline: React.FC<DailyTimelineProps> = ({
               <option value="tardy">🔴 Late / Tardy</option>
               <option value="absent">🟠 Absent / Sick</option>
             </select>
+
+            {/* Export PDF Button */}
+            {onExportPdf && (
+              <button
+                id="btn-daily-timeline-export-pdf"
+                onClick={onExportPdf}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors shadow-2xs ml-auto cursor-pointer"
+                title="Generate and print daily schedule PDF report"
+              >
+                <Printer className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Export Daily PDF</span>
+              </button>
+            )}
 
             {/* Reset */}
             {(filters.search || filters.department !== 'all' || filters.country !== 'all' || filters.supervisor !== 'all' || filters.statusFilter !== 'all') && (

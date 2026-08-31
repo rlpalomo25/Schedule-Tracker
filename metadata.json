@@ -1,6 +1,6 @@
 {
   "name": "Team Daily Schedule & Attendance Hub",
-  "description": "Dynamic daily schedule visualization, live timeline coverage, employee hours tracker with PTO, absence management, and multi-theme dark mode options (Dracula, One Dark Pro, Nord, Tokyo Night, Monokai Pro, Gruvbox, Catppuccin).",
+  "description": "Dynamic daily schedule visualization, live timeline coverage, employee hours tracker with PTO, absence management, multi-theme dark mode options, and print-friendly PDF report exports for daily and weekly views.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

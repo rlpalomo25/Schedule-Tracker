@@ -14,6 +14,7 @@ import { EditShiftModal } from './components/EditShiftModal';
 import { EmployeeDetailModal } from './components/EmployeeDetailModal';
 import { GoogleDriveSyncModal } from './components/GoogleDriveSyncModal';
 import { ThemeSelectorModal } from './components/ThemeSelectorModal';
+import { PrintPdfReportModal } from './components/PrintPdfReportModal';
 import { ViewTab, Employee, DayOfWeek, AttendanceType } from './types';
 
 function MainApp() {
@@ -27,6 +28,7 @@ function MainApp() {
   const [editShiftDay, setEditShiftDay] = useState<DayOfWeek>('Mon');
   const [isDriveSyncOpen, setIsDriveSyncOpen] = useState(false);
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
+  const [isPdfExportOpen, setIsPdfExportOpen] = useState(false);
 
   const handleOpenLogAttendance = (defaultType: AttendanceType = 'PTO', emp?: Employee) => {
     setLogAttendanceType(defaultType);
@@ -49,6 +51,7 @@ function MainApp() {
         onOpenLogAttendance={() => handleOpenLogAttendance('PTO')}
         onOpenDriveSync={() => setIsDriveSyncOpen(true)}
         onOpenThemeModal={() => setIsThemeModalOpen(true)}
+        onOpenPdfExport={() => setIsPdfExportOpen(true)}
       />
 
       {/* Main Container */}
@@ -57,6 +60,7 @@ function MainApp() {
           <DailyTimeline
             onSelectEmployee={(emp) => setSelectedEmployee(emp)}
             onLogAttendanceForEmployee={(emp) => handleOpenLogAttendance('Tardiness', emp)}
+            onExportPdf={() => setIsPdfExportOpen(true)}
           />
         )}
 
@@ -64,6 +68,7 @@ function MainApp() {
           <WeeklyMatrix
             onSelectEmployee={(emp) => setSelectedEmployee(emp)}
             onEditShift={handleEditShift}
+            onExportPdf={() => setIsPdfExportOpen(true)}
           />
         )}
 
@@ -135,6 +140,12 @@ function MainApp() {
       <ThemeSelectorModal
         isOpen={isThemeModalOpen}
         onClose={() => setIsThemeModalOpen(false)}
+      />
+
+      <PrintPdfReportModal
+        isOpen={isPdfExportOpen}
+        onClose={() => setIsPdfExportOpen(false)}
+        defaultView={currentTab === 'weekly_matrix' ? 'weekly' : 'daily'}
       />
     </div>
   );

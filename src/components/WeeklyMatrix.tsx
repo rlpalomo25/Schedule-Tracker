@@ -3,16 +3,18 @@ import { useSchedule } from '../context/ScheduleContext';
 import { Employee, DayOfWeek } from '../types';
 import { calculateShiftDurationHours } from '../data/teamData';
 import { checkShiftOverlapWithAttendance, ShiftConflictInfo } from '../utils/conflictUtils';
-import { Search, Filter, Calendar, Edit3, CheckCircle2, UserCheck, Shield, AlertTriangle } from 'lucide-react';
+import { Search, Filter, Calendar, Edit3, CheckCircle2, UserCheck, Shield, AlertTriangle, Printer } from 'lucide-react';
 
 interface WeeklyMatrixProps {
   onSelectEmployee: (emp: Employee) => void;
   onEditShift: (emp: Employee, day: DayOfWeek) => void;
+  onExportPdf?: () => void;
 }
 
 export const WeeklyMatrix: React.FC<WeeklyMatrixProps> = ({
   onSelectEmployee,
   onEditShift,
+  onExportPdf,
 }) => {
   const { employees, selectedDay, setSelectedDay, selectedDate, attendanceRecords } = useSchedule();
   const [search, setSearch] = useState('');
@@ -99,6 +101,19 @@ export const WeeklyMatrix: React.FC<WeeklyMatrixProps> = ({
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
+
+          {/* Export PDF Button */}
+          {onExportPdf && (
+            <button
+              id="btn-weekly-matrix-export-pdf"
+              onClick={onExportPdf}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors shadow-2xs cursor-pointer ml-auto"
+              title="Generate and print weekly matrix schedule PDF report"
+            >
+              <Printer className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Export Weekly PDF</span>
+            </button>
+          )}
         </div>
       </div>
 

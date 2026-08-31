@@ -21,7 +21,8 @@ import {
   Moon,
   Sun,
   Sparkles,
-  ChevronDown
+  ChevronDown,
+  Printer
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -31,6 +32,7 @@ interface HeaderProps {
   onOpenLogAttendance: () => void;
   onOpenDriveSync: () => void;
   onOpenThemeModal?: () => void;
+  onOpenPdfExport?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -40,6 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenLogAttendance,
   onOpenDriveSync,
   onOpenThemeModal,
+  onOpenPdfExport,
 }) => {
   const { currentUser, logout, allEmployees, switchUser } = useAuth();
   const {
@@ -149,6 +152,22 @@ export const Header: React.FC<HeaderProps> = ({
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
               <span className="hidden sm:inline">Drive Source</span>
             </button>
+
+            {/* Global Export PDF Report Button */}
+            {onOpenPdfExport && (
+              <button
+                id="btn-global-export-pdf"
+                onClick={onOpenPdfExport}
+                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs hover:border-indigo-300 hover:text-indigo-700 transition-colors"
+                title={`Export print-friendly PDF report (${currentTab === 'weekly_matrix' ? 'Weekly Matrix' : 'Daily Schedule'})`}
+              >
+                <Printer className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="hidden sm:inline font-bold">Export PDF</span>
+                <span className="px-1 py-0.2 rounded text-[9px] font-bold bg-indigo-100 text-indigo-800 hidden md:inline">
+                  {currentTab === 'weekly_matrix' ? 'Weekly' : 'Daily'}
+                </span>
+              </button>
+            )}
 
             {/* Dark Mode & Theme Switcher Button */}
             <div className="relative">
