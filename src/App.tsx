@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ScheduleProvider, useSchedule } from './context/ScheduleContext';
 import { Header } from './components/Header';
@@ -12,6 +13,7 @@ import { LogAttendanceModal } from './components/LogAttendanceModal';
 import { EditShiftModal } from './components/EditShiftModal';
 import { EmployeeDetailModal } from './components/EmployeeDetailModal';
 import { GoogleDriveSyncModal } from './components/GoogleDriveSyncModal';
+import { ThemeSelectorModal } from './components/ThemeSelectorModal';
 import { ViewTab, Employee, DayOfWeek, AttendanceType } from './types';
 
 function MainApp() {
@@ -24,6 +26,7 @@ function MainApp() {
   const [editShiftEmployee, setEditShiftEmployee] = useState<Employee | null>(null);
   const [editShiftDay, setEditShiftDay] = useState<DayOfWeek>('Mon');
   const [isDriveSyncOpen, setIsDriveSyncOpen] = useState(false);
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
 
   const handleOpenLogAttendance = (defaultType: AttendanceType = 'PTO', emp?: Employee) => {
     setLogAttendanceType(defaultType);
@@ -37,7 +40,7 @@ function MainApp() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans transition-colors duration-200">
       {/* Top Header */}
       <Header
         currentTab={currentTab}
@@ -45,6 +48,7 @@ function MainApp() {
         onOpenLogin={() => setIsLoginModalOpen(true)}
         onOpenLogAttendance={() => handleOpenLogAttendance('PTO')}
         onOpenDriveSync={() => setIsDriveSyncOpen(true)}
+        onOpenThemeModal={() => setIsThemeModalOpen(true)}
       />
 
       {/* Main Container */}
@@ -127,16 +131,24 @@ function MainApp() {
         isOpen={isDriveSyncOpen}
         onClose={() => setIsDriveSyncOpen(false)}
       />
+
+      <ThemeSelectorModal
+        isOpen={isThemeModalOpen}
+        onClose={() => setIsThemeModalOpen(false)}
+      />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ScheduleProvider>
-        <MainApp />
-      </ScheduleProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <ScheduleProvider>
+          <MainApp />
+        </ScheduleProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
+

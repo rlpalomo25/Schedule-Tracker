@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSchedule } from '../context/ScheduleContext';
-import { ViewTab, DayOfWeek } from '../types';
+import { useTheme } from '../context/ThemeContext';
+import { ViewTab, DayOfWeek, ThemeId } from '../types';
 import {
   Clock,
   Calendar,
@@ -14,7 +15,13 @@ import {
   BarChart3,
   CalendarDays,
   ShieldCheck,
-  Timer
+  Timer,
+  Palette,
+  Check,
+  Moon,
+  Sun,
+  Sparkles,
+  ChevronDown
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -23,6 +30,7 @@ interface HeaderProps {
   onOpenLogin: () => void;
   onOpenLogAttendance: () => void;
   onOpenDriveSync: () => void;
+  onOpenThemeModal?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -31,6 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenLogin,
   onOpenLogAttendance,
   onOpenDriveSync,
+  onOpenThemeModal,
 }) => {
   const { currentUser, logout, allEmployees, switchUser } = useAuth();
   const {
@@ -44,8 +53,10 @@ export const Header: React.FC<HeaderProps> = ({
     attendanceRecords,
     getCurrentTimeEntry,
   } = useSchedule();
+  const { theme, setTheme, themes, currentThemeOption, isDark } = useTheme();
 
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showThemeDropdown, setShowThemeDropdown] = useState(false);
 
   // Timezone display
   const getTimeStringForTimezone = (date: Date, tz: string) => {
@@ -138,6 +149,121 @@ export const Header: React.FC<HeaderProps> = ({
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
               <span className="hidden sm:inline">Drive Source</span>
             </button>
+
+            {/* Dark Mode & Theme Switcher Button */}
+            <div className="relative">
+              <button
+                id="btn-theme-selector-toggle"
+                onClick={() => setShowThemeDropdown(!showThemeDropdown)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition-colors"
+                title={`Current theme: ${currentThemeOption.name} (${currentThemeOption.accentLabel}). Click to switch dark mode theme.`}
+              >
+                <div className="flex items-center gap-1">
+                  {isDark ? (
+                    <Moon className="w-3.5 h-3.5 text-indigo-600" />
+                  ) : (
+                    <Sun className="w-3.5 h-3.5 text-amber-500" />
+                  )}
+                  <span
+                    className="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0"
+                    style={{ backgroundColor: currentThemeOption.accentHex }}
+                  />
+                </div>
+                <span className="hidden md:inline font-semibold">{currentThemeOption.name.split(' ')[0]}</span>
+                <ChevronDown className="w-3 h-3 text-slate-400" />
+              </button>
+
+              {/* Theme Dropdown Menu */}
+              {showThemeDropdown && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowThemeDropdown(false)}
+                  />
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <Palette className="w-4 h-4 text-indigo-600" />
+                        <span className="text-xs font-bold text-slate-900">Dark Mode & Themes</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-medium">8 Styles</span>
+                    </div>
+
+                    <div className="p-1.5 max-h-72 overflow-y-auto space-y-1">
+                      {themes.map((t) => {
+                        const isSelected = theme === t.id;
+                        return (
+                          <button
+                            key={t.id}
+                            id={`theme-btn-${t.id}`}
+                            onClick={() => {
+                              setTheme(t.id);
+                              setShowThemeDropdown(false);
+                            }}
+                            className={`w-full flex items-center justify-between px-3 py-2 text-xs rounded-lg text-left transition-colors ${
+                              isSelected
+                                ? 'bg-indigo-50 text-indigo-900 font-bold border border-indigo-200'
+                                : 'text-slate-700 hover:bg-slate-50 border border-transparent'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                              {/* Swatch preview dots */}
+                              <div className="flex items-center -space-x-1 shrink-0">
+                                <span
+                                  className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-2xs z-10"
+                                  style={{ backgroundColor: t.bgHex }}
+                                />
+                                <span
+                                  className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-2xs z-20"
+                                  style={{ backgroundColor: t.accentHex }}
+                                />
+                              </div>
+
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="truncate">{t.name}</span>
+                                  {t.isDark ? (
+                                    <span className="text-[9px] px-1 py-0.2 bg-slate-800 text-slate-200 rounded font-normal shrink-0">
+                                      Dark
+                                    </span>
+                                  ) : (
+                                    <span className="text-[9px] px-1 py-0.2 bg-amber-100 text-amber-800 rounded font-normal shrink-0">
+                                      Light
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-normal truncate">
+                                  {t.description}
+                                </p>
+                              </div>
+                            </div>
+
+                            {isSelected && (
+                              <Check className="w-4 h-4 text-indigo-600 shrink-0 stroke-[2.5]" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {onOpenThemeModal && (
+                      <div className="px-2 pt-1.5 border-t border-slate-100">
+                        <button
+                          onClick={() => {
+                            setShowThemeDropdown(false);
+                            onOpenThemeModal();
+                          }}
+                          className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>View Full Theme Palette Gallery</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* Log Absence/PTO Button */}
             <button

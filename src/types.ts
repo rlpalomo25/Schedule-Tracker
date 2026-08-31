@@ -79,8 +79,31 @@ export interface FilterOptions {
   department: string;
   country: string;
   supervisor: string;
-  statusFilter: 'all' | 'working' | 'off' | 'pto' | 'tardy' | 'absent';
+  statusFilter: 'all' | 'working' | 'off' | 'pto' | 'tardy' | 'absent' | 'conflict';
   dayOfWeek: DayOfWeek;
 }
 
 export type ViewTab = 'daily_timeline' | 'weekly_matrix' | 'attendance_tracker' | 'timecard' | 'analytics';
+
+export type ThemeId =
+  | 'light'
+  | 'dracula'
+  | 'one-dark-pro'
+  | 'nord'
+  | 'tokyo-night'
+  | 'monokai-pro'
+  | 'gruvbox'
+  | 'catppuccin';
+
+export interface ThemeOption {
+  id: ThemeId;
+  name: string;
+  description: string;
+  isDark: boolean;
+  accentLabel: string;
+  bgHex: string;
+  surfaceHex: string;
+  accentHex: string;
+  secondaryAccentHex: string;
+  textHex: string;
+}

@@ -6,7 +6,7 @@
   }
 }
 
-/* Custom smooth scrollbar */
+/* Base scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -23,4 +23,612 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* ==========================================================================
+   GLOBAL DARK MODE COMMON RULES
+   ========================================================================== */
+
+[data-theme]:not([data-theme="light"])::-webkit-scrollbar-track,
+[data-theme]:not([data-theme="light"]) *::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+[data-theme]:not([data-theme="light"])::-webkit-scrollbar-thumb,
+[data-theme]:not([data-theme="light"]) *::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme]:not([data-theme="light"]) table {
+  color: inherit;
+}
+
+[data-theme]:not([data-theme="light"]) input::placeholder,
+[data-theme]:not([data-theme="light"]) textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ==========================================================================
+   1. DRACULA
+   A dark theme with vibrant purple and pink accents.
+   ========================================================================== */
+[data-theme="dracula"] body,
+[data-theme="dracula"] #root,
+[data-theme="dracula"] .min-h-screen {
+  background-color: #282a36 !important;
+  color: #f8f8f2 !important;
+}
+
+[data-theme="dracula"] header,
+[data-theme="dracula"] footer,
+[data-theme="dracula"] .bg-white {
+  background-color: #21222c !important;
+  border-color: #44475a !important;
+  color: #f8f8f2 !important;
+}
+
+[data-theme="dracula"] .bg-slate-50,
+[data-theme="dracula"] .bg-slate-100 {
+  background-color: #282a36 !important;
+  border-color: #44475a !important;
+  color: #f8f8f2 !important;
+}
+
+[data-theme="dracula"] .bg-slate-900 {
+  background-color: #191a21 !important;
+  border-color: #44475a !important;
+}
+
+[data-theme="dracula"] .border-slate-100,
+[data-theme="dracula"] .border-slate-200,
+[data-theme="dracula"] .border-slate-300 {
+  border-color: #44475a !important;
+}
+
+[data-theme="dracula"] .text-slate-900,
+[data-theme="dracula"] .text-slate-800,
+[data-theme="dracula"] .text-slate-700 {
+  color: #f8f8f2 !important;
+}
+
+[data-theme="dracula"] .text-slate-600,
+[data-theme="dracula"] .text-slate-500,
+[data-theme="dracula"] .text-slate-400 {
+  color: #9aa5ce !important;
+}
+
+[data-theme="dracula"] input,
+[data-theme="dracula"] select,
+[data-theme="dracula"] textarea {
+  background-color: #282a36 !important;
+  color: #f8f8f2 !important;
+  border-color: #44475a !important;
+}
+
+[data-theme="dracula"] .hover\:bg-slate-50:hover,
+[data-theme="dracula"] .hover\:bg-slate-100:hover,
+[data-theme="dracula"] .hover\:bg-slate-200:hover {
+  background-color: #343746 !important;
+}
+
+/* Dracula vibrant accents */
+[data-theme="dracula"] .text-indigo-600,
+[data-theme="dracula"] .text-indigo-700 {
+  color: #bd93f9 !important;
+}
+
+[data-theme="dracula"] .bg-indigo-600,
+[data-theme="dracula"] .hover\:bg-indigo-700:hover {
+  background-color: #bd93f9 !important;
+  color: #282a36 !important;
+}
+
+[data-theme="dracula"] .bg-indigo-50,
+[data-theme="dracula"] .bg-indigo-100 {
+  background-color: rgba(189, 147, 249, 0.18) !important;
+  border-color: rgba(189, 147, 249, 0.35) !important;
+  color: #bd93f9 !important;
+}
+
+[data-theme="dracula"] .text-pink-600,
+[data-theme="dracula"] .text-pink-700 {
+  color: #ff79c6 !important;
+}
+
+[data-theme="dracula"] .bg-pink-600 {
+  background-color: #ff79c6 !important;
+  color: #282a36 !important;
+}
+
+/* ==========================================================================
+   2. ONE DARK PRO
+   A classic dark gray theme based on Atom's default dark design.
+   ========================================================================== */
+[data-theme="one-dark-pro"] body,
+[data-theme="one-dark-pro"] #root,
+[data-theme="one-dark-pro"] .min-h-screen {
+  background-color: #21252b !important;
+  color: #abb2bf !important;
+}
+
+[data-theme="one-dark-pro"] header,
+[data-theme="one-dark-pro"] footer,
+[data-theme="one-dark-pro"] .bg-white {
+  background-color: #282c34 !important;
+  border-color: #3e4451 !important;
+  color: #abb2bf !important;
+}
+
+[data-theme="one-dark-pro"] .bg-slate-50,
+[data-theme="one-dark-pro"] .bg-slate-100 {
+  background-color: #21252b !important;
+  border-color: #3e4451 !important;
+  color: #abb2bf !important;
+}
+
+[data-theme="one-dark-pro"] .bg-slate-900 {
+  background-color: #1b1d23 !important;
+  border-color: #3e4451 !important;
+}
+
+[data-theme="one-dark-pro"] .border-slate-100,
+[data-theme="one-dark-pro"] .border-slate-200,
+[data-theme="one-dark-pro"] .border-slate-300 {
+  border-color: #3e4451 !important;
+}
+
+[data-theme="one-dark-pro"] .text-slate-900,
+[data-theme="one-dark-pro"] .text-slate-800,
+[data-theme="one-dark-pro"] .text-slate-700 {
+  color: #abb2bf !important;
+}
+
+[data-theme="one-dark-pro"] .text-slate-600,
+[data-theme="one-dark-pro"] .text-slate-500,
+[data-theme="one-dark-pro"] .text-slate-400 {
+  color: #7f848e !important;
+}
+
+[data-theme="one-dark-pro"] input,
+[data-theme="one-dark-pro"] select,
+[data-theme="one-dark-pro"] textarea {
+  background-color: #21252b !important;
+  color: #abb2bf !important;
+  border-color: #3e4451 !important;
+}
+
+[data-theme="one-dark-pro"] .hover\:bg-slate-50:hover,
+[data-theme="one-dark-pro"] .hover\:bg-slate-100:hover,
+[data-theme="one-dark-pro"] .hover\:bg-slate-200:hover {
+  background-color: #2c313a !important;
+}
+
+/* One Dark Pro Accents */
+[data-theme="one-dark-pro"] .text-indigo-600,
+[data-theme="one-dark-pro"] .text-indigo-700 {
+  color: #61afef !important;
+}
+
+[data-theme="one-dark-pro"] .bg-indigo-600,
+[data-theme="one-dark-pro"] .hover\:bg-indigo-700:hover {
+  background-color: #61afef !important;
+  color: #21252b !important;
+}
+
+[data-theme="one-dark-pro"] .bg-indigo-50,
+[data-theme="one-dark-pro"] .bg-indigo-100 {
+  background-color: rgba(97, 175, 239, 0.18) !important;
+  border-color: rgba(97, 175, 239, 0.35) !important;
+  color: #61afef !important;
+}
+
+/* ==========================================================================
+   3. NORD
+   An arctic, north-bluish clean color palette.
+   ========================================================================== */
+[data-theme="nord"] body,
+[data-theme="nord"] #root,
+[data-theme="nord"] .min-h-screen {
+  background-color: #2e3440 !important;
+  color: #eceff4 !important;
+}
+
+[data-theme="nord"] header,
+[data-theme="nord"] footer,
+[data-theme="nord"] .bg-white {
+  background-color: #3b4252 !important;
+  border-color: #4c566a !important;
+  color: #eceff4 !important;
+}
+
+[data-theme="nord"] .bg-slate-50,
+[data-theme="nord"] .bg-slate-100 {
+  background-color: #2e3440 !important;
+  border-color: #4c566a !important;
+  color: #eceff4 !important;
+}
+
+[data-theme="nord"] .bg-slate-900 {
+  background-color: #242933 !important;
+  border-color: #4c566a !important;
+}
+
+[data-theme="nord"] .border-slate-100,
+[data-theme="nord"] .border-slate-200,
+[data-theme="nord"] .border-slate-300 {
+  border-color: #4c566a !important;
+}
+
+[data-theme="nord"] .text-slate-900,
+[data-theme="nord"] .text-slate-800,
+[data-theme="nord"] .text-slate-700 {
+  color: #eceff4 !important;
+}
+
+[data-theme="nord"] .text-slate-600,
+[data-theme="nord"] .text-slate-500,
+[data-theme="nord"] .text-slate-400 {
+  color: #d8dee9 !important;
+}
+
+[data-theme="nord"] input,
+[data-theme="nord"] select,
+[data-theme="nord"] textarea {
+  background-color: #2e3440 !important;
+  color: #eceff4 !important;
+  border-color: #4c566a !important;
+}
+
+[data-theme="nord"] .hover\:bg-slate-50:hover,
+[data-theme="nord"] .hover\:bg-slate-100:hover,
+[data-theme="nord"] .hover\:bg-slate-200:hover {
+  background-color: #434c5e !important;
+}
+
+/* Nord Accents (Frost #88c0d0) */
+[data-theme="nord"] .text-indigo-600,
+[data-theme="nord"] .text-indigo-700 {
+  color: #88c0d0 !important;
+}
+
+[data-theme="nord"] .bg-indigo-600,
+[data-theme="nord"] .hover\:bg-indigo-700:hover {
+  background-color: #88c0d0 !important;
+  color: #2e3440 !important;
+}
+
+[data-theme="nord"] .bg-indigo-50,
+[data-theme="nord"] .bg-indigo-100 {
+  background-color: rgba(136, 192, 208, 0.18) !important;
+  border-color: rgba(136, 192, 208, 0.35) !important;
+  color: #88c0d0 !important;
+}
+
+/* ==========================================================================
+   4. TOKYO NIGHT
+   A dark theme celebrating the lights of Tokyo at night with deep blues and purples.
+   ========================================================================== */
+[data-theme="tokyo-night"] body,
+[data-theme="tokyo-night"] #root,
+[data-theme="tokyo-night"] .min-h-screen {
+  background-color: #1a1b26 !important;
+  color: #c0caf5 !important;
+}
+
+[data-theme="tokyo-night"] header,
+[data-theme="tokyo-night"] footer,
+[data-theme="tokyo-night"] .bg-white {
+  background-color: #1f2335 !important;
+  border-color: #292e42 !important;
+  color: #c0caf5 !important;
+}
+
+[data-theme="tokyo-night"] .bg-slate-50,
+[data-theme="tokyo-night"] .bg-slate-100 {
+  background-color: #1a1b26 !important;
+  border-color: #292e42 !important;
+  color: #c0caf5 !important;
+}
+
+[data-theme="tokyo-night"] .bg-slate-900 {
+  background-color: #16161e !important;
+  border-color: #292e42 !important;
+}
+
+[data-theme="tokyo-night"] .border-slate-100,
+[data-theme="tokyo-night"] .border-slate-200,
+[data-theme="tokyo-night"] .border-slate-300 {
+  border-color: #292e42 !important;
+}
+
+[data-theme="tokyo-night"] .text-slate-900,
+[data-theme="tokyo-night"] .text-slate-800,
+[data-theme="tokyo-night"] .text-slate-700 {
+  color: #c0caf5 !important;
+}
+
+[data-theme="tokyo-night"] .text-slate-600,
+[data-theme="tokyo-night"] .text-slate-500,
+[data-theme="tokyo-night"] .text-slate-400 {
+  color: #7aa2f7 !important;
+  opacity: 0.8;
+}
+
+[data-theme="tokyo-night"] input,
+[data-theme="tokyo-night"] select,
+[data-theme="tokyo-night"] textarea {
+  background-color: #1a1b26 !important;
+  color: #c0caf5 !important;
+  border-color: #292e42 !important;
+}
+
+[data-theme="tokyo-night"] .hover\:bg-slate-50:hover,
+[data-theme="tokyo-night"] .hover\:bg-slate-100:hover,
+[data-theme="tokyo-night"] .hover\:bg-slate-200:hover {
+  background-color: #24283b !important;
+}
+
+/* Tokyo Night Accents */
+[data-theme="tokyo-night"] .text-indigo-600,
+[data-theme="tokyo-night"] .text-indigo-700 {
+  color: #7aa2f7 !important;
+}
+
+[data-theme="tokyo-night"] .bg-indigo-600,
+[data-theme="tokyo-night"] .hover\:bg-indigo-700:hover {
+  background-color: #7aa2f7 !important;
+  color: #1a1b26 !important;
+}
+
+[data-theme="tokyo-night"] .bg-indigo-50,
+[data-theme="tokyo-night"] .bg-indigo-100 {
+  background-color: rgba(122, 162, 247, 0.18) !important;
+  border-color: rgba(122, 162, 247, 0.35) !important;
+  color: #7aa2f7 !important;
+}
+
+/* ==========================================================================
+   5. MONOKAI PRO
+   A refined, high-contrast dark theme with sharp, vivid syntax highlighting.
+   ========================================================================== */
+[data-theme="monokai-pro"] body,
+[data-theme="monokai-pro"] #root,
+[data-theme="monokai-pro"] .min-h-screen {
+  background-color: #221f22 !important;
+  color: #fcfcfa !important;
+}
+
+[data-theme="monokai-pro"] header,
+[data-theme="monokai-pro"] footer,
+[data-theme="monokai-pro"] .bg-white {
+  background-color: #2d2a2e !important;
+  border-color: #403e41 !important;
+  color: #fcfcfa !important;
+}
+
+[data-theme="monokai-pro"] .bg-slate-50,
+[data-theme="monokai-pro"] .bg-slate-100 {
+  background-color: #221f22 !important;
+  border-color: #403e41 !important;
+  color: #fcfcfa !important;
+}
+
+[data-theme="monokai-pro"] .bg-slate-900 {
+  background-color: #19181a !important;
+  border-color: #403e41 !important;
+}
+
+[data-theme="monokai-pro"] .border-slate-100,
+[data-theme="monokai-pro"] .border-slate-200,
+[data-theme="monokai-pro"] .border-slate-300 {
+  border-color: #403e41 !important;
+}
+
+[data-theme="monokai-pro"] .text-slate-900,
+[data-theme="monokai-pro"] .text-slate-800,
+[data-theme="monokai-pro"] .text-slate-700 {
+  color: #fcfcfa !important;
+}
+
+[data-theme="monokai-pro"] .text-slate-600,
+[data-theme="monokai-pro"] .text-slate-500,
+[data-theme="monokai-pro"] .text-slate-400 {
+  color: #939293 !important;
+}
+
+[data-theme="monokai-pro"] input,
+[data-theme="monokai-pro"] select,
+[data-theme="monokai-pro"] textarea {
+  background-color: #221f22 !important;
+  color: #fcfcfa !important;
+  border-color: #403e41 !important;
+}
+
+[data-theme="monokai-pro"] .hover\:bg-slate-50:hover,
+[data-theme="monokai-pro"] .hover\:bg-slate-100:hover,
+[data-theme="monokai-pro"] .hover\:bg-slate-200:hover {
+  background-color: #403e41 !important;
+}
+
+/* Monokai Pro Accents */
+[data-theme="monokai-pro"] .text-indigo-600,
+[data-theme="monokai-pro"] .text-indigo-700 {
+  color: #ffd866 !important;
+}
+
+[data-theme="monokai-pro"] .bg-indigo-600,
+[data-theme="monokai-pro"] .hover\:bg-indigo-700:hover {
+  background-color: #ffd866 !important;
+  color: #221f22 !important;
+}
+
+[data-theme="monokai-pro"] .bg-indigo-50,
+[data-theme="monokai-pro"] .bg-indigo-100 {
+  background-color: rgba(255, 216, 102, 0.18) !important;
+  border-color: rgba(255, 216, 102, 0.35) !important;
+  color: #ffd866 !important;
+}
+
+/* ==========================================================================
+   6. GRUVBOX
+   A retro groove color scheme with warm, earthy tones.
+   ========================================================================== */
+[data-theme="gruvbox"] body,
+[data-theme="gruvbox"] #root,
+[data-theme="gruvbox"] .min-h-screen {
+  background-color: #1d2021 !important;
+  color: #ebdbb2 !important;
+}
+
+[data-theme="gruvbox"] header,
+[data-theme="gruvbox"] footer,
+[data-theme="gruvbox"] .bg-white {
+  background-color: #282828 !important;
+  border-color: #3c3836 !important;
+  color: #ebdbb2 !important;
+}
+
+[data-theme="gruvbox"] .bg-slate-50,
+[data-theme="gruvbox"] .bg-slate-100 {
+  background-color: #1d2021 !important;
+  border-color: #3c3836 !important;
+  color: #ebdbb2 !important;
+}
+
+[data-theme="gruvbox"] .bg-slate-900 {
+  background-color: #141617 !important;
+  border-color: #3c3836 !important;
+}
+
+[data-theme="gruvbox"] .border-slate-100,
+[data-theme="gruvbox"] .border-slate-200,
+[data-theme="gruvbox"] .border-slate-300 {
+  border-color: #3c3836 !important;
+}
+
+[data-theme="gruvbox"] .text-slate-900,
+[data-theme="gruvbox"] .text-slate-800,
+[data-theme="gruvbox"] .text-slate-700 {
+  color: #ebdbb2 !important;
+}
+
+[data-theme="gruvbox"] .text-slate-600,
+[data-theme="gruvbox"] .text-slate-500,
+[data-theme="gruvbox"] .text-slate-400 {
+  color: #a89984 !important;
+}
+
+[data-theme="gruvbox"] input,
+[data-theme="gruvbox"] select,
+[data-theme="gruvbox"] textarea {
+  background-color: #1d2021 !important;
+  color: #ebdbb2 !important;
+  border-color: #3c3836 !important;
+}
+
+[data-theme="gruvbox"] .hover\:bg-slate-50:hover,
+[data-theme="gruvbox"] .hover\:bg-slate-100:hover,
+[data-theme="gruvbox"] .hover\:bg-slate-200:hover {
+  background-color: #3c3836 !important;
+}
+
+/* Gruvbox Accents */
+[data-theme="gruvbox"] .text-indigo-600,
+[data-theme="gruvbox"] .text-indigo-700 {
+  color: #fe8019 !important;
+}
+
+[data-theme="gruvbox"] .bg-indigo-600,
+[data-theme="gruvbox"] .hover\:bg-indigo-700:hover {
+  background-color: #fe8019 !important;
+  color: #1d2021 !important;
+}
+
+[data-theme="gruvbox"] .bg-indigo-50,
+[data-theme="gruvbox"] .bg-indigo-100 {
+  background-color: rgba(254, 128, 25, 0.18) !important;
+  border-color: rgba(254, 128, 25, 0.35) !important;
+  color: #fe8019 !important;
+}
+
+/* ==========================================================================
+   7. CATPPUCCIN
+   A soothing pastel-based dark theme.
+   ========================================================================== */
+[data-theme="catppuccin"] body,
+[data-theme="catppuccin"] #root,
+[data-theme="catppuccin"] .min-h-screen {
+  background-color: #181825 !important;
+  color: #cdd6f4 !important;
+}
+
+[data-theme="catppuccin"] header,
+[data-theme="catppuccin"] footer,
+[data-theme="catppuccin"] .bg-white {
+  background-color: #1e1e2e !important;
+  border-color: #313244 !important;
+  color: #cdd6f4 !important;
+}
+
+[data-theme="catppuccin"] .bg-slate-50,
+[data-theme="catppuccin"] .bg-slate-100 {
+  background-color: #181825 !important;
+  border-color: #313244 !important;
+  color: #cdd6f4 !important;
+}
+
+[data-theme="catppuccin"] .bg-slate-900 {
+  background-color: #11111b !important;
+  border-color: #313244 !important;
+}
+
+[data-theme="catppuccin"] .border-slate-100,
+[data-theme="catppuccin"] .border-slate-200,
+[data-theme="catppuccin"] .border-slate-300 {
+  border-color: #313244 !important;
+}
+
+[data-theme="catppuccin"] .text-slate-900,
+[data-theme="catppuccin"] .text-slate-800,
+[data-theme="catppuccin"] .text-slate-700 {
+  color: #cdd6f4 !important;
+}
+
+[data-theme="catppuccin"] .text-slate-600,
+[data-theme="catppuccin"] .text-slate-500,
+[data-theme="catppuccin"] .text-slate-400 {
+  color: #a6adc8 !important;
+}
+
+[data-theme="catppuccin"] input,
+[data-theme="catppuccin"] select,
+[data-theme="catppuccin"] textarea {
+  background-color: #181825 !important;
+  color: #cdd6f4 !important;
+  border-color: #313244 !important;
+}
+
+[data-theme="catppuccin"] .hover\:bg-slate-50:hover,
+[data-theme="catppuccin"] .hover\:bg-slate-100:hover,
+[data-theme="catppuccin"] .hover\:bg-slate-200:hover {
+  background-color: #313244 !important;
+}
+
+/* Catppuccin Accents */
+[data-theme="catppuccin"] .text-indigo-600,
+[data-theme="catppuccin"] .text-indigo-700 {
+  color: #cba6f7 !important;
+}
+
+[data-theme="catppuccin"] .bg-indigo-600,
+[data-theme="catppuccin"] .hover\:bg-indigo-700:hover {
+  background-color: #cba6f7 !important;
+  color: #181825 !important;
+}
+
+[data-theme="catppuccin"] .bg-indigo-50,
+[data-theme="catppuccin"] .bg-indigo-100 {
+  background-color: rgba(203, 166, 247, 0.18) !important;
+  border-color: rgba(203, 166, 247, 0.35) !important;
+  color: #cba6f7 !important;
 }

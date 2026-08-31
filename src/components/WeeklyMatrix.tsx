@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { useSchedule } from '../context/ScheduleContext';
 import { Employee, DayOfWeek } from '../types';
 import { calculateShiftDurationHours } from '../data/teamData';
-import { Search, Filter, Calendar, Edit3, CheckCircle2, UserCheck, Shield } from 'lucide-react';
+import { checkShiftOverlapWithAttendance, ShiftConflictInfo } from '../utils/conflictUtils';
+import { Search, Filter, Calendar, Edit3, CheckCircle2, UserCheck, Shield, AlertTriangle } from 'lucide-react';
 
 interface WeeklyMatrixProps {
   onSelectEmployee: (emp: Employee) => void;
@@ -13,7 +14,7 @@ export const WeeklyMatrix: React.FC<WeeklyMatrixProps> = ({
   onSelectEmployee,
   onEditShift,
 }) => {
-  const { employees, selectedDay, setSelectedDay } = useSchedule();
+  const { employees, selectedDay, setSelectedDay, selectedDate, attendanceRecords } = useSchedule();
   const [search, setSearch] = useState('');
   const [selectedDept, setSelectedDept] = useState('all');
   const [selectedCountry, setSelectedCountry] = useState('all');
@@ -181,19 +182,43 @@ export const WeeklyMatrix: React.FC<WeeklyMatrixProps> = ({
                     const duration = isOff ? 0 : calculateShiftDurationHours(shift.start, shift.end);
                     const isSelected = selectedDay === day;
 
+                    // Check for conflict on this day
+                    const isTodayColumn = day === selectedDay;
+                    const conflict = isTodayColumn
+                      ? checkShiftOverlapWithAttendance(emp, day, selectedDate, attendanceRecords)
+                      : checkShiftOverlapWithAttendance(emp, day, selectedDate, attendanceRecords);
+
                     return (
                       <td
                         key={day}
                         onClick={() => onEditShift(emp, day)}
                         className={`py-2 px-2 text-center cursor-pointer transition-all hover:bg-indigo-50/80 ${
-                          isSelected ? 'bg-indigo-50/40 font-semibold' : ''
+                          conflict.hasConflict
+                            ? 'bg-amber-100/60 ring-1 ring-amber-400 font-semibold'
+                            : isSelected
+                            ? 'bg-indigo-50/40 font-semibold'
+                            : ''
                         }`}
-                        title={`Click to edit ${emp.name}'s shift for ${day}`}
+                        title={
+                          conflict.hasConflict
+                            ? `⚠️ Schedule Conflict on ${day}: Shift ${shift?.start}-${shift?.end} overlaps with approved ${conflict.conflictType} (${conflict.conflictingRecord?.reason}). Click to edit.`
+                            : `Click to edit ${emp.name}'s shift for ${day}`
+                        }
                       >
                         {isOff ? (
                           <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-medium text-slate-400 bg-slate-100">
                             Off
                           </span>
+                        ) : conflict.hasConflict ? (
+                          <div className="flex flex-col items-center">
+                            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-amber-950 font-bold bg-amber-200 px-1.5 py-0.5 rounded-md border border-amber-400 shadow-2xs">
+                              <AlertTriangle className="w-2.5 h-2.5 text-amber-700 shrink-0" />
+                              <span>{shift.start}-{shift.end}</span>
+                            </span>
+                            <span className="text-[9px] text-amber-700 font-bold mt-0.5">
+                              {conflict.conflictType} overlap
+                            </span>
+                          </div>
                         ) : (
                           <div className="flex flex-col items-center">
                             <span className="font-mono text-[11px] text-indigo-950 font-bold bg-indigo-50 px-1.5 py-0.5 rounded-md border border-indigo-100 group-hover:border-indigo-300">
