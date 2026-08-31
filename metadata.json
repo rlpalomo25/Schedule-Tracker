@@ -1,0 +1,6 @@
+{
+  "name": "Team Daily Schedule & Attendance Hub",
+  "description": "Dynamic daily schedule visualization, live timeline coverage, and employee hours tracker with PTO, absence, and tardiness management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
