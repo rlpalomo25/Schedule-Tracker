@@ -1,6 +1,6 @@
 {
   "name": "Team Daily Schedule & Attendance Hub",
-  "description": "Dynamic daily schedule visualization, live timeline coverage, employee hours tracker with PTO, absence management, multi-theme dark mode options, and print-friendly PDF report exports for daily and weekly views.",
+  "description": "Dynamic daily schedule visualization, live timeline coverage, shift swaps & coverage board with 1-click approvals, historical attendance analytics with day-of-week tardiness trends, employee PTO balance utilization, supervisor shift consistency scores, and absence management.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -1,4 +1,4 @@
-import { Employee, AttendanceRecord, TimeEntry, DayOfWeek } from '../types';
+import { Employee, AttendanceRecord, TimeEntry, DayOfWeek, ShiftSwapRequest } from '../types';
 
 export const INITIAL_EMPLOYEES_RAW: (Omit<Employee, 'id' | 'schedule' | 'username'> & {
   mon: [string, string];
@@ -763,6 +763,7 @@ export function parseInitialEmployees(): Employee[] {
       daysOffCount: emp.daysOffCount,
       avatarColor: AVATAR_COLORS[index % AVATAR_COLORS.length],
       role,
+      ptoAllowance: role === 'manager' ? 25 : role === 'supervisor' ? 22 : 20,
       schedule: {
         Mon: { start: emp.mon[0], end: emp.mon[1], isOff: emp.mon[0].toLowerCase() === 'off' },
         Tue: { start: emp.tue[0], end: emp.tue[1], isOff: emp.tue[0].toLowerCase() === 'off' },
@@ -831,8 +832,9 @@ export function isWorkingAtHour(shiftStart: string, shiftEnd: string, hourFloat:
   return currentMins >= startMins && currentMins < endMins;
 }
 
-// Initial Sample Attendance Records (PTO, Tardiness, Absences)
+// Initial Sample Attendance Records (PTO, Tardiness, Absences, Sick Leave)
 export const INITIAL_ATTENDANCE_RECORDS: AttendanceRecord[] = [
+  // --- Monday Incidents (High tardiness demonstrating Monday commuter spike) ---
   {
     id: 'att-1',
     employeeId: 'emp-1', // Carlos Garcia
@@ -844,7 +846,7 @@ export const INITIAL_ATTENDANCE_RECORDS: AttendanceRecord[] = [
     minutesLate: 18,
     scheduledTime: '9:00',
     actualTime: '9:18',
-    reason: 'Heavy traffic on Insurgentes highway due to roadwork',
+    reason: 'Heavy highway congestion / roadwork on main artery',
     supervisorApprovedBy: 'Andre Villaran',
     createdAt: '2026-08-31T09:20:00Z',
     notes: 'Informed supervisor via Slack at 08:45 AM'
@@ -887,7 +889,7 @@ export const INITIAL_ATTENDANCE_RECORDS: AttendanceRecord[] = [
     minutesLate: 12,
     scheduledTime: '10:00',
     actualTime: '10:12',
-    reason: 'Metro line delay / commute congestion',
+    reason: 'Metro line delay / transit switch delay',
     supervisorApprovedBy: 'Moha Belal',
     createdAt: '2026-08-31T10:15:00Z',
     notes: 'Supervisor notified'
@@ -918,6 +920,487 @@ export const INITIAL_ATTENDANCE_RECORDS: AttendanceRecord[] = [
     supervisorApprovedBy: 'Roberto Luarca',
     createdAt: '2026-08-25T11:00:00Z',
     notes: 'Covered by John Hallett'
+  },
+  {
+    id: 'att-7',
+    employeeId: 'emp-7', // Alexis Rodriguez
+    employeeName: 'Alexis Rodriguez',
+    department: 'Hospitality',
+    type: 'Tardiness',
+    date: '2026-08-24', // Monday
+    status: 'Recorded',
+    minutesLate: 22,
+    scheduledTime: '9:00',
+    actualTime: '9:22',
+    reason: 'Monday bridge traffic backlog & toll lane shutdown',
+    supervisorApprovedBy: 'Andre Villaran',
+    createdAt: '2026-08-24T09:25:00Z',
+    notes: 'Checked in on arrival'
+  },
+  {
+    id: 'att-8',
+    employeeId: 'emp-14', // Aaron Rivera
+    employeeName: 'Aaron Rivera',
+    department: 'MDU Support',
+    type: 'Tardiness',
+    date: '2026-08-24', // Monday
+    status: 'Recorded',
+    minutesLate: 15,
+    scheduledTime: '8:00',
+    actualTime: '8:15',
+    reason: 'Bad weather & commuter rail switch fault',
+    supervisorApprovedBy: 'Gabby',
+    createdAt: '2026-08-24T08:20:00Z'
+  },
+  {
+    id: 'att-9',
+    employeeId: 'emp-25', // Karlo Jimenez
+    employeeName: 'Karlo Jimenez',
+    department: 'Escalations',
+    type: 'Tardiness',
+    date: '2026-09-07', // Monday
+    status: 'Recorded',
+    minutesLate: 25,
+    scheduledTime: '9:00',
+    actualTime: '9:25',
+    reason: 'Vehicle battery drained after weekend',
+    supervisorApprovedBy: 'Andre Villaran',
+    createdAt: '2026-09-07T09:30:00Z'
+  },
+  {
+    id: 'att-10',
+    employeeId: 'emp-2', // Juan Pablo Gutierrez
+    employeeName: 'Juan Pablo Gutierrez',
+    department: 'CALA Escalation',
+    type: 'Tardiness',
+    date: '2026-08-17', // Monday
+    status: 'Recorded',
+    minutesLate: 14,
+    scheduledTime: '9:00',
+    actualTime: '9:14',
+    reason: 'Heavy rain & urban traffic gridlock',
+    supervisorApprovedBy: 'Andre Villaran',
+    createdAt: '2026-08-17T09:15:00Z'
+  },
+  {
+    id: 'att-11',
+    employeeId: 'emp-3', // Jorge Beltran
+    employeeName: 'Jorge Beltran',
+    department: 'CALA Escalation',
+    type: 'Tardiness',
+    date: '2026-08-10', // Monday
+    status: 'Recorded',
+    minutesLate: 20,
+    scheduledTime: '9:00',
+    actualTime: '9:20',
+    reason: 'Monday transit rush & security gate line',
+    supervisorApprovedBy: 'Andre Villaran',
+    createdAt: '2026-08-10T09:22:00Z'
+  },
+
+  // --- Tuesday Records ---
+  {
+    id: 'att-12',
+    employeeId: 'emp-8', // Christian Pimentel
+    employeeName: 'Christian Pimentel',
+    department: 'Senior Living',
+    type: 'Tardiness',
+    date: '2026-08-25', // Tuesday
+    status: 'Recorded',
+    minutesLate: 10,
+    scheduledTime: '9:00',
+    actualTime: '9:10',
+    reason: 'Local construction detour',
+    supervisorApprovedBy: 'Gabby',
+    createdAt: '2026-08-25T09:12:00Z'
+  },
+  {
+    id: 'att-13',
+    employeeId: 'emp-19', // Kevin Bermejo
+    employeeName: 'Kevin Bermejo',
+    department: 'Hospitality',
+    type: 'Tardiness',
+    date: '2026-09-01', // Tuesday
+    status: 'Recorded',
+    minutesLate: 8,
+    scheduledTime: '9:00',
+    actualTime: '9:08',
+    reason: 'VPN authentication token glitch',
+    supervisorApprovedBy: 'Andre Villaran',
+    createdAt: '2026-09-01T09:10:00Z'
+  },
+  {
+    id: 'att-14',
+    employeeId: 'emp-11', // Jesus Hernandez
+    employeeName: 'Jesus Hernandez',
+    department: 'MDU Engineer',
+    type: 'PTO',
+    date: '2026-08-18', // Tuesday
+    endDate: '2026-08-21',
+    status: 'Approved',
+    reason: 'Summer vacation break with family',
+    supervisorApprovedBy: 'Gabby',
+    createdAt: '2026-08-01T10:00:00Z'
+  },
+
+  // --- Wednesday Records ---
+  {
+    id: 'att-15',
+    employeeId: 'emp-23', // Sergio Hernandez
+    employeeName: 'Sergio Hernandez',
+    department: 'Escalations',
+    type: 'Tardiness',
+    date: '2026-08-26', // Wednesday
+    status: 'Recorded',
+    minutesLate: 7,
+    scheduledTime: '9:00',
+    actualTime: '9:07',
+    reason: 'Morning dental checkup overran slightly',
+    supervisorApprovedBy: 'Andre Villaran',
+    createdAt: '2026-08-26T09:10:00Z'
+  },
+  {
+    id: 'att-16',
+    employeeId: 'emp-27', // Mohamed Abdelmagid
+    employeeName: 'Mohamed Abdelmagid',
+    department: 'Escalations',
+    type: 'Sick Leave',
+    date: '2026-09-02', // Wednesday
+    status: 'Approved',
+    reason: 'Severe migraine headache',
+    supervisorApprovedBy: 'Moha Belal',
+    createdAt: '2026-09-02T08:00:00Z'
+  },
+  {
+    id: 'att-17',
+    employeeId: 'emp-20', // Roberto Luarca
+    employeeName: 'Roberto Luarca',
+    department: 'Hospitality',
+    type: 'PTO',
+    date: '2026-07-22',
+    endDate: '2026-07-24',
+    status: 'Approved',
+    reason: 'Personal time off / anniversary',
+    supervisorApprovedBy: 'Tom Hardy',
+    createdAt: '2026-07-05T09:00:00Z'
+  },
+
+  // --- Thursday Records ---
+  {
+    id: 'att-18',
+    employeeId: 'emp-30', // Hector Salazar
+    employeeName: 'Hector Salazar',
+    department: 'Escalations',
+    type: 'Tardiness',
+    date: '2026-08-27', // Thursday
+    status: 'Recorded',
+    minutesLate: 12,
+    scheduledTime: '16:00',
+    actualTime: '16:12',
+    reason: 'Shift handover briefing overrun with daytime lead',
+    supervisorApprovedBy: 'Tom Hardy',
+    createdAt: '2026-08-27T16:15:00Z'
+  },
+  {
+    id: 'att-19',
+    employeeId: 'emp-12', // Scott Edwards
+    employeeName: 'Scott Edwards',
+    department: 'MDU Engineer',
+    type: 'Tardiness',
+    date: '2026-09-03', // Thursday
+    status: 'Recorded',
+    minutesLate: 11,
+    scheduledTime: '10:00',
+    actualTime: '10:11',
+    reason: 'School dropoff traffic congestion',
+    supervisorApprovedBy: 'Gabby',
+    createdAt: '2026-09-03T10:14:00Z'
+  },
+  {
+    id: 'att-20',
+    employeeId: 'emp-13', // Alan Cardenas
+    employeeName: 'Alan Cardenas',
+    department: 'MDU Engineer',
+    type: 'PTO',
+    date: '2026-08-06',
+    endDate: '2026-08-07',
+    status: 'Approved',
+    reason: 'Home renovation and relocation tasks',
+    supervisorApprovedBy: 'Gabby',
+    createdAt: '2026-07-28T14:00:00Z'
+  },
+
+  // --- Friday Records ---
+  {
+    id: 'att-21',
+    employeeId: 'emp-4', // Andre Villaran
+    employeeName: 'Andre Villaran',
+    department: 'Hospitality',
+    type: 'Tardiness',
+    date: '2026-08-28', // Friday
+    status: 'Recorded',
+    minutesLate: 16,
+    scheduledTime: '8:00',
+    actualTime: '8:16',
+    reason: 'Highway accident blocking middle lanes',
+    supervisorApprovedBy: 'Tom Hardy',
+    createdAt: '2026-08-28T08:20:00Z'
+  },
+  {
+    id: 'att-22',
+    employeeId: 'emp-16', // Moha Belal
+    employeeName: 'Moha Belal',
+    department: 'Escalations',
+    type: 'Tardiness',
+    date: '2026-09-04', // Friday
+    status: 'Recorded',
+    minutesLate: 15,
+    scheduledTime: '8:00',
+    actualTime: '8:15',
+    reason: 'Airport shuttle delay following regional visit',
+    supervisorApprovedBy: 'Tom Hardy',
+    createdAt: '2026-09-04T08:20:00Z'
+  },
+  {
+    id: 'att-23',
+    employeeId: 'emp-21', // Jose Martinez
+    employeeName: 'Jose Martinez',
+    department: 'Hospitality',
+    type: 'PTO',
+    date: '2026-08-14',
+    endDate: '2026-08-14',
+    status: 'Approved',
+    reason: 'Long weekend family trip',
+    supervisorApprovedBy: 'Andre Villaran',
+    createdAt: '2026-08-02T11:00:00Z'
+  },
+  {
+    id: 'att-24',
+    employeeId: 'emp-24', // Karlo Jimenez
+    employeeName: 'Karlo Jimenez',
+    department: 'Escalations',
+    type: 'PTO',
+    date: '2026-07-03',
+    endDate: '2026-07-10',
+    status: 'Approved',
+    reason: 'Annual European vacation trip',
+    supervisorApprovedBy: 'Andre Villaran',
+    createdAt: '2026-06-15T09:00:00Z'
+  },
+
+  // --- Weekend Records (Sat / Sun) ---
+  {
+    id: 'att-25',
+    employeeId: 'emp-9', // Phillip Sharma
+    employeeName: 'Phillip Sharma',
+    department: 'Senior Living',
+    type: 'Tardiness',
+    date: '2026-08-29', // Saturday
+    status: 'Recorded',
+    minutesLate: 6,
+    scheduledTime: '9:00',
+    actualTime: '9:06',
+    reason: 'Broadband router reset on home shift start',
+    supervisorApprovedBy: 'Gabby',
+    createdAt: '2026-08-29T09:10:00Z'
+  },
+  {
+    id: 'att-26',
+    employeeId: 'emp-31', // Mia Uniyal
+    employeeName: 'Mia Uniyal',
+    department: 'Escalations',
+    type: 'Tardiness',
+    date: '2026-08-30', // Sunday night shift
+    status: 'Recorded',
+    minutesLate: 9,
+    scheduledTime: '23:00',
+    actualTime: '23:09',
+    reason: 'Monsoon rainfall transport slow-down',
+    supervisorApprovedBy: 'Hector Salazar',
+    createdAt: '2026-08-30T23:12:00Z'
+  },
+
+  // --- Diverse PTO Records across multiple employees for realistic PTO balance utilization ---
+  {
+    id: 'att-27',
+    employeeId: 'emp-1', // Carlos Garcia
+    employeeName: 'Carlos Garcia',
+    department: 'CALA Escalation',
+    type: 'PTO',
+    date: '2026-06-15',
+    endDate: '2026-06-19', // 5 days
+    status: 'Approved',
+    reason: 'Summer family getaway',
+    supervisorApprovedBy: 'Andre Villaran',
+    createdAt: '2026-05-20T10:00:00Z'
+  },
+  {
+    id: 'att-28',
+    employeeId: 'emp-1', // Carlos Garcia
+    employeeName: 'Carlos Garcia',
+    department: 'CALA Escalation',
+    type: 'PTO',
+    date: '2026-09-18',
+    endDate: '2026-09-18', // 1 day pending
+    status: 'Pending',
+    reason: 'Personal appointments',
+    supervisorApprovedBy: 'Andre Villaran',
+    createdAt: '2026-09-02T11:00:00Z'
+  },
+  {
+    id: 'att-29',
+    employeeId: 'emp-6', // Gabby
+    employeeName: 'Gabby',
+    department: 'Senior Living',
+    type: 'PTO',
+    date: '2026-05-11',
+    endDate: '2026-05-15', // 5 days
+    status: 'Approved',
+    reason: 'Spring recess leave',
+    supervisorApprovedBy: 'Tom Hardy',
+    createdAt: '2026-04-15T09:00:00Z'
+  },
+  {
+    id: 'att-30',
+    employeeId: 'emp-6', // Gabby
+    employeeName: 'Gabby',
+    department: 'Senior Living',
+    type: 'PTO',
+    date: '2026-08-03',
+    endDate: '2026-08-07', // 5 days
+    status: 'Approved',
+    reason: 'Annual mid-year family holiday',
+    supervisorApprovedBy: 'Tom Hardy',
+    createdAt: '2026-07-10T09:00:00Z'
+  },
+  {
+    id: 'att-31',
+    employeeId: 'emp-15', // John Hallett
+    employeeName: 'John Hallett',
+    department: 'MDU Support',
+    type: 'PTO',
+    date: '2026-04-20',
+    endDate: '2026-04-24', // 5 days
+    status: 'Approved',
+    reason: 'Spring camping trip',
+    supervisorApprovedBy: 'Gabby',
+    createdAt: '2026-04-01T10:00:00Z'
+  },
+  {
+    id: 'att-32',
+    employeeId: 'emp-15', // John Hallett
+    employeeName: 'John Hallett',
+    department: 'MDU Support',
+    type: 'PTO',
+    date: '2026-07-27',
+    endDate: '2026-07-31', // 5 days
+    status: 'Approved',
+    reason: 'Family reunion',
+    supervisorApprovedBy: 'Gabby',
+    createdAt: '2026-07-01T10:00:00Z'
+  },
+  {
+    id: 'att-33',
+    employeeId: 'emp-15', // John Hallett
+    employeeName: 'John Hallett',
+    department: 'MDU Support',
+    type: 'PTO',
+    date: '2026-09-21',
+    endDate: '2026-09-23', // 3 days
+    status: 'Approved',
+    reason: 'Autumn travel',
+    supervisorApprovedBy: 'Gabby',
+    createdAt: '2026-08-15T10:00:00Z'
+  },
+  {
+    id: 'att-34',
+    employeeId: 'emp-26', // Peter Diaz
+    employeeName: 'Peter Diaz',
+    department: 'Escalations',
+    type: 'PTO',
+    date: '2026-08-10',
+    endDate: '2026-08-14', // 5 days
+    status: 'Approved',
+    reason: 'Summer break',
+    supervisorApprovedBy: 'Andre Villaran',
+    createdAt: '2026-07-25T11:00:00Z'
+  },
+  {
+    id: 'att-35',
+    employeeId: 'emp-28', // Daniel Alcaraz
+    employeeName: 'Daniel Alcaraz',
+    department: 'Escalations',
+    type: 'PTO',
+    date: '2026-03-09',
+    endDate: '2026-03-13', // 5 days
+    status: 'Approved',
+    reason: 'Off-season travel',
+    supervisorApprovedBy: 'Hector Salazar',
+    createdAt: '2026-02-15T14:00:00Z'
+  },
+  {
+    id: 'att-36',
+    employeeId: 'emp-28', // Daniel Alcaraz
+    employeeName: 'Daniel Alcaraz',
+    department: 'Escalations',
+    type: 'PTO',
+    date: '2026-07-13',
+    endDate: '2026-07-17', // 5 days
+    status: 'Approved',
+    reason: 'Summer family staycation',
+    supervisorApprovedBy: 'Hector Salazar',
+    createdAt: '2026-06-20T14:00:00Z'
+  },
+  {
+    id: 'att-37',
+    employeeId: 'emp-28', // Daniel Alcaraz
+    employeeName: 'Daniel Alcaraz',
+    department: 'Escalations',
+    type: 'PTO',
+    date: '2026-09-14',
+    endDate: '2026-09-18', // 5 days
+    status: 'Approved',
+    reason: 'Personal travel and wellness',
+    supervisorApprovedBy: 'Hector Salazar',
+    createdAt: '2026-08-20T14:00:00Z'
+  },
+  {
+    id: 'att-38',
+    employeeId: 'emp-29', // Mia Uniyal
+    employeeName: 'Mia Uniyal',
+    department: 'Escalations',
+    type: 'PTO',
+    date: '2026-05-04',
+    endDate: '2026-05-08', // 5 days
+    status: 'Approved',
+    reason: 'Family festivities',
+    supervisorApprovedBy: 'Hector Salazar',
+    createdAt: '2026-04-10T11:00:00Z'
+  },
+  {
+    id: 'att-39',
+    employeeId: 'emp-17', // Paul S.
+    employeeName: 'Paul S.',
+    department: 'Hospitality',
+    type: 'Sick Leave',
+    date: '2026-08-19',
+    status: 'Approved',
+    reason: 'Dental surgery and post-op rest',
+    supervisorApprovedBy: 'Andre Villaran',
+    createdAt: '2026-08-18T16:00:00Z'
+  },
+  {
+    id: 'att-40',
+    employeeId: 'emp-2', // Juan Pablo Gutierrez
+    employeeName: 'Juan Pablo Gutierrez',
+    department: 'CALA Escalation',
+    type: 'PTO',
+    date: '2026-07-06',
+    endDate: '2026-07-10', // 5 days
+    status: 'Approved',
+    reason: 'Family summer holiday',
+    supervisorApprovedBy: 'Andre Villaran',
+    createdAt: '2026-06-15T09:00:00Z'
   }
 ];
 
@@ -953,5 +1436,73 @@ export const INITIAL_TIME_ENTRIES: TimeEntry[] = [
     minutesTardy: 0,
     status: 'clocked_in',
     notes: 'UBF/BF shift'
+  }
+];
+
+export const INITIAL_SHIFT_SWAPS: ShiftSwapRequest[] = [
+  {
+    id: 'swap-1',
+    requestType: 'swap',
+    requesterId: 'emp-1',
+    requesterName: 'Carlos Garcia',
+    requesterDepartment: 'CALA Escalation',
+    requesterSupervisor: 'Andre Villaran',
+    requesterDay: 'Tue',
+    requesterDate: '2026-09-08',
+    requesterShift: { start: '9:00', end: '18:00', isOff: false },
+    targetEmployeeId: 'emp-2',
+    targetEmployeeName: 'Victor Ponce',
+    targetDay: 'Thu',
+    targetDate: '2026-09-10',
+    targetShift: { start: '10:30', end: '19:30', isOff: false },
+    isOpenPool: false,
+    reason: 'Personal dental appointment on Tuesday afternoon; swapping for Thursday shift.',
+    status: 'pending_supervisor',
+    createdAt: '2026-09-06T10:30:00Z',
+    updatedAt: '2026-09-06T14:30:00Z',
+    peerResponseNote: 'Accepted by Victor Ponce: I can take Tuesday morning!',
+    peerAcceptedAt: '2026-09-06T14:30:00Z'
+  },
+  {
+    id: 'swap-2',
+    requestType: 'coverage',
+    requesterId: 'emp-18',
+    requesterName: 'Nick Jacobs',
+    requesterDepartment: 'UBF / BF',
+    requesterSupervisor: 'Roberto Luarca',
+    requesterDay: 'Wed',
+    requesterDate: '2026-09-09',
+    requesterShift: { start: '8:00', end: '17:00', isOff: false },
+    isOpenPool: true,
+    reason: 'Family medical commitment - seeking coverage for Wednesday 8:00-17:00 shift. Willing to trade for weekend!',
+    status: 'pending_coworker',
+    createdAt: '2026-09-07T08:15:00Z',
+    updatedAt: '2026-09-07T08:15:00Z'
+  },
+  {
+    id: 'swap-3',
+    requestType: 'swap',
+    requesterId: 'emp-3',
+    requesterName: 'Luis Garcia',
+    requesterDepartment: 'CALA Escalation',
+    requesterSupervisor: 'Andre Villaran',
+    requesterDay: 'Fri',
+    requesterDate: '2026-09-04',
+    requesterShift: { start: '12:00', end: '21:00', isOff: false },
+    targetEmployeeId: 'emp-1',
+    targetEmployeeName: 'Carlos Garcia',
+    targetDay: 'Mon',
+    targetDate: '2026-09-07',
+    targetShift: { start: '9:00', end: '18:00', isOff: false },
+    isOpenPool: false,
+    reason: 'Weekend trip schedule adjustment.',
+    status: 'approved',
+    createdAt: '2026-09-02T09:00:00Z',
+    updatedAt: '2026-09-03T11:20:00Z',
+    peerResponseNote: 'Accepted by Carlos Garcia',
+    peerAcceptedAt: '2026-09-02T16:00:00Z',
+    supervisorName: 'Andre Villaran',
+    supervisorDecisionAt: '2026-09-03T11:20:00Z',
+    supervisorNotes: 'Approved. CALA tier 2 coverage preserved.'
   }
 ];

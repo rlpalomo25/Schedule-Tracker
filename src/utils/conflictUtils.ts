@@ -13,7 +13,7 @@ export interface ShiftConflictInfo {
   severity: 'warning' | 'critical' | 'none';
 }
 
-const DAYS_OF_WEEK: DayOfWeek[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+export const DAYS_OF_WEEK: DayOfWeek[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 /**
  * Given any date string (YYYY-MM-DD), returns a map of DayOfWeek -> YYYY-MM-DD for the corresponding Monday-Sunday week.

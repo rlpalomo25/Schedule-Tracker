@@ -29,6 +29,7 @@ export interface Employee {
   avatarColor?: string;
   username: string;
   role?: 'employee' | 'supervisor' | 'manager' | 'admin';
+  ptoAllowance?: number; // annual allowance in days, defaults to 20
 }
 
 export type AttendanceType = 'PTO' | 'Absence' | 'Tardiness' | 'Sick Leave' | 'Half Day' | 'Emergency' | 'Holiday';
@@ -83,7 +84,39 @@ export interface FilterOptions {
   dayOfWeek: DayOfWeek;
 }
 
-export type ViewTab = 'daily_timeline' | 'weekly_matrix' | 'attendance_tracker' | 'timecard' | 'analytics';
+export type ViewTab = 'daily_timeline' | 'weekly_matrix' | 'supervisor_coverage' | 'attendance_tracker' | 'shift_swaps' | 'analytics';
+
+export type SwapRequestType = 'swap' | 'coverage';
+export type SwapStatus = 'pending_coworker' | 'pending_supervisor' | 'approved' | 'rejected' | 'cancelled';
+
+export interface ShiftSwapRequest {
+  id: string;
+  requestType: SwapRequestType; // 'swap' (2-way trade) or 'coverage' (1-way pickup/giveaway)
+  requesterId: string;
+  requesterName: string;
+  requesterDepartment: string;
+  requesterSupervisor: string;
+  requesterDay: DayOfWeek;
+  requesterDate: string; // YYYY-MM-DD
+  requesterShift: DayShift;
+
+  targetEmployeeId?: string; // specific employee, or undefined if broadcast to department
+  targetEmployeeName?: string;
+  targetDay?: DayOfWeek; // for 2-way swap
+  targetDate?: string;
+  targetShift?: DayShift;
+
+  isOpenPool: boolean; // if true, any eligible colleague in department can claim coverage
+  reason: string;
+  status: SwapStatus;
+  createdAt: string;
+  updatedAt: string;
+  peerResponseNote?: string;
+  peerAcceptedAt?: string;
+  supervisorName?: string;
+  supervisorDecisionAt?: string;
+  supervisorNotes?: string;
+}
 
 export type ThemeId =
   | 'light'

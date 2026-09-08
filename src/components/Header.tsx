@@ -15,14 +15,14 @@ import {
   BarChart3,
   CalendarDays,
   ShieldCheck,
-  Timer,
   Palette,
   Check,
   Moon,
   Sun,
   Sparkles,
   ChevronDown,
-  Printer
+  Users,
+  ArrowLeftRight
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -32,7 +32,7 @@ interface HeaderProps {
   onOpenLogAttendance: () => void;
   onOpenDriveSync: () => void;
   onOpenThemeModal?: () => void;
-  onOpenPdfExport?: () => void;
+  onOpenCreateSwapModal?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -42,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenLogAttendance,
   onOpenDriveSync,
   onOpenThemeModal,
-  onOpenPdfExport,
+  onOpenCreateSwapModal,
 }) => {
   const { currentUser, logout, allEmployees, switchUser } = useAuth();
   const {
@@ -54,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
     selectedDate,
     setSelectedDate,
     attendanceRecords,
-    getCurrentTimeEntry,
+    shiftSwapRequests,
   } = useSchedule();
   const { theme, setTheme, themes, currentThemeOption, isDark } = useTheme();
 
@@ -78,24 +78,12 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const daysList: { key: DayOfWeek; label: string }[] = [
-    { key: 'Mon', label: 'Mon' },
-    { key: 'Tue', label: 'Tue' },
-    { key: 'Wed', label: 'Wed' },
-    { key: 'Thu', label: 'Thu' },
-    { key: 'Fri', label: 'Fri' },
-    { key: 'Sat', label: 'Sat' },
-    { key: 'Sun', label: 'Sun' },
-  ];
-
-  const todayTimeEntry = currentUser ? getCurrentTimeEntry(currentUser.id, selectedDate) : undefined;
-  const todayClockStatus = todayTimeEntry?.status || 'not_clocked_in';
-
-  // Quick stats for badge
+  // Quick stats for badges
   const pendingRecordsCount = attendanceRecords.filter(r => r.status === 'Pending').length;
+  const pendingSwapsCount = shiftSwapRequests.filter(r => r.status === 'pending_supervisor' || r.status === 'pending_coworker').length;
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
       {/* Top utility row */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between py-3 gap-3 border-b border-slate-100">
@@ -105,12 +93,7 @@ export const Header: React.FC<HeaderProps> = ({
               <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold text-slate-900 tracking-tight">Team Schedule & Attendance Hub</h1>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                  Live Operations
-                </span>
-              </div>
+              <h1 className="text-lg font-bold text-slate-900 tracking-tight">Team Schedule & Attendance Hub</h1>
               <p className="text-xs text-slate-500">
                 Single Digits Escalations, UBF/BF, MDU & Senior Living Teams
               </p>
@@ -142,39 +125,23 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
 
-            {/* Google Drive Location Data Sync */}
+            {/* Google Drive / Excel Schedule File Sync */}
             <button
               id="btn-drive-sync"
               onClick={onOpenDriveSync}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition-colors"
-              title="View Google Drive data source & export"
+              className="inline-flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition-colors min-h-[38px] sm:min-h-0 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 cursor-pointer"
+              title="Load team schedules from Excel (.xlsx) or CSV (.csv) file"
             >
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="hidden sm:inline">Drive Source</span>
+              <span className="hidden sm:inline">Load Schedules (.xlsx / .csv)</span>
             </button>
-
-            {/* Global Export PDF Report Button */}
-            {onOpenPdfExport && (
-              <button
-                id="btn-global-export-pdf"
-                onClick={onOpenPdfExport}
-                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs hover:border-indigo-300 hover:text-indigo-700 transition-colors"
-                title={`Export print-friendly PDF report (${currentTab === 'weekly_matrix' ? 'Weekly Matrix' : 'Daily Schedule'})`}
-              >
-                <Printer className="w-3.5 h-3.5 text-indigo-600" />
-                <span className="hidden sm:inline font-bold">Export PDF</span>
-                <span className="px-1 py-0.2 rounded text-[9px] font-bold bg-indigo-100 text-indigo-800 hidden md:inline">
-                  {currentTab === 'weekly_matrix' ? 'Weekly' : 'Daily'}
-                </span>
-              </button>
-            )}
 
             {/* Dark Mode & Theme Switcher Button */}
             <div className="relative">
               <button
                 id="btn-theme-selector-toggle"
                 onClick={() => setShowThemeDropdown(!showThemeDropdown)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition-colors min-h-[38px] sm:min-h-0 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 cursor-pointer"
                 title={`Current theme: ${currentThemeOption.name} (${currentThemeOption.accentLabel}). Click to switch dark mode theme.`}
               >
                 <div className="flex items-center gap-1">
@@ -284,11 +251,24 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
 
+            {/* Shift Swap Button */}
+            {onOpenCreateSwapModal && (
+              <button
+                id="btn-quick-swap-header"
+                onClick={onOpenCreateSwapModal}
+                className="inline-flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 shadow-2xs transition-colors min-h-[38px] sm:min-h-0 focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer"
+                title="Propose shift swap with colleague or post open coverage request"
+              >
+                <ArrowLeftRight className="w-3.5 h-3.5" />
+                <span>Swap Shift</span>
+              </button>
+            )}
+
             {/* Log Absence/PTO Button */}
             <button
               id="btn-log-attendance-header"
               onClick={onOpenLogAttendance}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 shadow-2xs transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-2xs transition-colors min-h-[38px] sm:min-h-0 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 cursor-pointer"
             >
               <PlusCircle className="w-3.5 h-3.5" />
               <span>Log PTO / Absence</span>
@@ -321,32 +301,6 @@ export const Header: React.FC<HeaderProps> = ({
                       </div>
                     </div>
                   </button>
-
-                  {/* Punch status pill */}
-                  <button
-                    id="btn-quick-punch-nav"
-                    onClick={() => setCurrentTab('timecard')}
-                    className={`hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                      todayClockStatus === 'clocked_in'
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                        : todayClockStatus === 'on_break'
-                        ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
-                        : todayClockStatus === 'clocked_out'
-                        ? 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
-                        : 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
-                    }`}
-                  >
-                    <span className={`w-2 h-2 rounded-full ${
-                      todayClockStatus === 'clocked_in' ? 'bg-emerald-500 animate-pulse' :
-                      todayClockStatus === 'on_break' ? 'bg-amber-500' :
-                      todayClockStatus === 'clocked_out' ? 'bg-slate-400' : 'bg-indigo-500'
-                    }`} />
-                    <span>
-                      {todayClockStatus === 'clocked_in' ? 'Clocked In' :
-                       todayClockStatus === 'on_break' ? 'On Break' :
-                       todayClockStatus === 'clocked_out' ? 'Clocked Out' : 'Punch In'}
-                    </span>
-                  </button>
                 </div>
 
                 {/* Dropdown switch user / logout */}
@@ -364,19 +318,6 @@ export const Header: React.FC<HeaderProps> = ({
                         <div className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-600">
                           <span>Supervisor: {currentUser.supervisor}</span>
                         </div>
-                      </div>
-
-                      <div className="px-2 py-1">
-                        <button
-                          onClick={() => {
-                            setCurrentTab('timecard');
-                            setShowUserDropdown(false);
-                          }}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg text-left"
-                        >
-                          <Timer className="w-4 h-4 text-indigo-600" />
-                          <span>My Daily Timecard & Hours</span>
-                        </button>
                       </div>
 
                       <div className="px-3 py-1.5 border-t border-slate-100">
@@ -435,13 +376,21 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Navigation Tabs & Date / Day Selector Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2.5 gap-3">
-          {/* Main Navigation tabs with distinctive visual accents */}
-          <nav className="flex items-center space-x-1.5 overflow-x-auto pb-1 sm:pb-0" aria-label="Tabs">
+          {/* Main Navigation tabs with distinctive visual accents (Google Mobile & Accessibility Standards) */}
+          <nav
+            role="tablist"
+            aria-label="Primary application views"
+            className="flex items-center space-x-1.5 overflow-x-auto pb-1 sm:pb-0 scroll-smooth"
+          >
             {/* Daily Visual Timeline Tab */}
             <button
               id="tab-daily-timeline"
+              role="tab"
+              aria-selected={currentTab === 'daily_timeline'}
+              aria-controls="main-content"
+              tabIndex={currentTab === 'daily_timeline' ? 0 : -1}
               onClick={() => setCurrentTab('daily_timeline')}
-              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 border cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2.5 min-h-[44px] rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 border cursor-pointer active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none ${
                 currentTab === 'daily_timeline'
                   ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/20 ring-2 ring-blue-500/20'
                   : 'bg-white text-slate-700 hover:text-blue-700 hover:bg-blue-50/60 border-slate-200'
@@ -459,8 +408,12 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Weekly Schedule Matrix Tab */}
             <button
               id="tab-weekly-matrix"
+              role="tab"
+              aria-selected={currentTab === 'weekly_matrix'}
+              aria-controls="main-content"
+              tabIndex={currentTab === 'weekly_matrix' ? 0 : -1}
               onClick={() => setCurrentTab('weekly_matrix')}
-              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 border cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2.5 min-h-[44px] rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 border cursor-pointer active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:outline-none ${
                 currentTab === 'weekly_matrix'
                   ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-500/20 ring-2 ring-indigo-500/20'
                   : 'bg-white text-slate-700 hover:text-indigo-700 hover:bg-indigo-50/60 border-slate-200'
@@ -475,11 +428,38 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </button>
 
+            {/* Coverage per Supervisor Tab - Distinct Teal accent */}
+            <button
+              id="tab-supervisor-coverage"
+              role="tab"
+              aria-selected={currentTab === 'supervisor_coverage'}
+              aria-controls="main-content"
+              tabIndex={currentTab === 'supervisor_coverage' ? 0 : -1}
+              onClick={() => setCurrentTab('supervisor_coverage')}
+              className={`inline-flex items-center gap-2 px-3.5 py-2.5 min-h-[44px] rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 border cursor-pointer active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:outline-none ${
+                currentTab === 'supervisor_coverage'
+                  ? 'bg-teal-600 text-white border-teal-600 shadow-sm shadow-teal-500/20 ring-2 ring-teal-500/20'
+                  : 'bg-white text-slate-700 hover:text-teal-700 hover:bg-teal-50/60 border-slate-200'
+              }`}
+            >
+              <div className={`p-1 rounded-lg ${currentTab === 'supervisor_coverage' ? 'bg-white/20 text-white' : 'bg-teal-100 text-teal-700'}`}>
+                <Users className="w-3.5 h-3.5" />
+              </div>
+              <span className="tracking-tight">Supervisor Coverage</span>
+              {currentTab === 'supervisor_coverage' && (
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              )}
+            </button>
+
             {/* PTO, Absences & Tardiness Tab - Amber/Rose distinct accent */}
             <button
               id="tab-attendance-tracker"
+              role="tab"
+              aria-selected={currentTab === 'attendance_tracker'}
+              aria-controls="main-content"
+              tabIndex={currentTab === 'attendance_tracker' ? 0 : -1}
               onClick={() => setCurrentTab('attendance_tracker')}
-              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 border cursor-pointer relative ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2.5 min-h-[44px] rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 border cursor-pointer relative active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:outline-none ${
                 currentTab === 'attendance_tracker'
                   ? 'bg-amber-600 text-white border-amber-600 shadow-sm shadow-amber-500/20 ring-2 ring-amber-500/20'
                   : 'bg-white text-slate-700 hover:text-amber-800 hover:bg-amber-50/70 border-slate-200'
@@ -502,30 +482,46 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </button>
 
-            {/* My Daily Hours & Clock-In Tab - Emerald green distinct accent */}
+            {/* Shift Swaps & Coverage Requests Tab - Indigo / Blue distinct accent */}
             <button
-              id="tab-timecard"
-              onClick={() => setCurrentTab('timecard')}
-              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 border cursor-pointer ${
-                currentTab === 'timecard'
-                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-500/20 ring-2 ring-emerald-500/20'
-                  : 'bg-white text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/60 border-slate-200'
+              id="tab-shift-swaps"
+              role="tab"
+              aria-selected={currentTab === 'shift_swaps'}
+              aria-controls="main-content"
+              tabIndex={currentTab === 'shift_swaps' ? 0 : -1}
+              onClick={() => setCurrentTab('shift_swaps')}
+              className={`inline-flex items-center gap-2 px-3.5 py-2.5 min-h-[44px] rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 border cursor-pointer relative active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:outline-none ${
+                currentTab === 'shift_swaps'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-500/20 ring-2 ring-indigo-500/20'
+                  : 'bg-white text-slate-700 hover:text-indigo-700 hover:bg-indigo-50/70 border-slate-200'
               }`}
             >
-              <div className={`p-1 rounded-lg ${currentTab === 'timecard' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'}`}>
-                <Timer className="w-3.5 h-3.5" />
+              <div className={`p-1 rounded-lg ${currentTab === 'shift_swaps' ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-700'}`}>
+                <ArrowLeftRight className="w-3.5 h-3.5" />
               </div>
-              <span className="tracking-tight">Hours & Clock</span>
-              {currentTab === 'timecard' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              <span className="tracking-tight">Shift Swaps</span>
+              {pendingSwapsCount > 0 ? (
+                <span className={`px-1.5 py-0.2 text-[10px] rounded-full font-bold ${
+                  currentTab === 'shift_swaps' ? 'bg-white text-indigo-700' : 'bg-indigo-600 text-white'
+                }`}>
+                  {pendingSwapsCount}
+                </span>
+              ) : (
+                currentTab === 'shift_swaps' && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                )
               )}
             </button>
 
             {/* Coverage & Analytics Tab - Violet distinct accent */}
             <button
               id="tab-analytics"
+              role="tab"
+              aria-selected={currentTab === 'analytics'}
+              aria-controls="main-content"
+              tabIndex={currentTab === 'analytics' ? 0 : -1}
               onClick={() => setCurrentTab('analytics')}
-              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 border cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2.5 min-h-[44px] rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 border cursor-pointer active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:outline-none ${
                 currentTab === 'analytics'
                   ? 'bg-violet-600 text-white border-violet-600 shadow-sm shadow-violet-500/20 ring-2 ring-violet-500/20'
                   : 'bg-white text-slate-700 hover:text-violet-700 hover:bg-violet-50/60 border-slate-200'
@@ -541,32 +537,28 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </nav>
 
-          {/* Quick Day of Week Switcher & Date Picker */}
+          {/* Active Date Context & Calendar Selector */}
           <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-            <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-              {daysList.map((d) => (
-                <button
-                  key={d.key}
-                  id={`btn-day-${d.key}`}
-                  onClick={() => setSelectedDay(d.key)}
-                  className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${
-                    selectedDay === d.key
-                      ? 'bg-white text-indigo-700 shadow-2xs font-bold'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {d.label}
-                </button>
-              ))}
+            <div className="flex items-center gap-1.5 bg-slate-100/90 border border-slate-200/90 rounded-xl px-3 py-2 text-xs text-slate-700 shadow-2xs min-h-[44px] sm:min-h-0">
+              <Calendar className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+              <span className="font-semibold text-slate-800">
+                {selectedDay},{' '}
+                {new Date(selectedDate + 'T12:00:00').toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </span>
             </div>
 
-            <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2 py-1 shadow-2xs">
+            <div className="flex items-center bg-white border border-slate-200 rounded-xl px-2.5 py-2 shadow-2xs hover:border-slate-300 min-h-[44px] sm:min-h-0 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500">
               <input
                 id="input-selected-date"
                 type="date"
+                aria-label="Select tracker date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="text-xs font-medium text-slate-700 focus:outline-hidden cursor-pointer"
+                className="text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer bg-transparent"
                 title="Select tracker date"
               />
             </div>

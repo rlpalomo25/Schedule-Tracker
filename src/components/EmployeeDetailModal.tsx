@@ -12,7 +12,8 @@ import {
   UserCheck,
   Palmtree,
   AlertTriangle,
-  PlusCircle
+  PlusCircle,
+  ArrowLeftRight
 } from 'lucide-react';
 
 interface EmployeeDetailModalProps {
@@ -21,6 +22,7 @@ interface EmployeeDetailModalProps {
   employee: Employee | null;
   onLogAttendance: (emp: Employee) => void;
   onEditShift: (emp: Employee, day: DayOfWeek) => void;
+  onProposeSwap?: (emp: Employee) => void;
 }
 
 export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
@@ -29,6 +31,7 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
   employee,
   onLogAttendance,
   onEditShift,
+  onProposeSwap,
 }) => {
   const { attendanceRecords, timeEntries, selectedDay } = useSchedule();
 
@@ -195,14 +198,25 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 flex items-center justify-between">
+        <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span className="text-xs text-slate-500">Single Digits Employee ID: {employee.id}</span>
-          <button
-            onClick={() => onLogAttendance(employee)}
-            className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs transition-colors"
-          >
-            Log PTO or Tardiness
-          </button>
+          <div className="flex items-center gap-2">
+            {onProposeSwap && (
+              <button
+                onClick={() => onProposeSwap(employee)}
+                className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-indigo-700 font-bold text-xs border border-indigo-200 shadow-2xs transition-colors flex items-center gap-1.5"
+              >
+                <ArrowLeftRight className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Propose Shift Swap</span>
+              </button>
+            )}
+            <button
+              onClick={() => onLogAttendance(employee)}
+              className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs transition-colors"
+            >
+              Log PTO or Tardiness
+            </button>
+          </div>
         </div>
       </div>
     </div>

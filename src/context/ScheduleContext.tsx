@@ -6,20 +6,25 @@ import {
   DayOfWeek,
   FilterOptions,
   AttendanceStatus,
-  ClockStatus
+  ClockStatus,
+  ShiftSwapRequest,
+  SwapStatus
 } from '../types';
 import {
   parseInitialEmployees,
   INITIAL_ATTENDANCE_RECORDS,
   INITIAL_TIME_ENTRIES,
+  INITIAL_SHIFT_SWAPS,
   timeStringToMinutes,
   calculateShiftDurationHours
 } from '../data/teamData';
+import { parseXLSXFile, parseCSVString } from '../utils/scheduleImport';
 
 interface ScheduleContextType {
   employees: Employee[];
   attendanceRecords: AttendanceRecord[];
   timeEntries: TimeEntry[];
+  shiftSwapRequests: ShiftSwapRequest[];
   selectedDay: DayOfWeek;
   setSelectedDay: (day: DayOfWeek) => void;
   selectedDate: string;
@@ -43,25 +48,43 @@ interface ScheduleContextType {
   getCurrentTimeEntry: (employeeId: string, date?: string) => TimeEntry | undefined;
   getTimeEntriesForEmployee: (employeeId: string) => TimeEntry[];
 
+  // Shift Swaps & Coverage Requests
+  createShiftSwapRequest: (data: Omit<ShiftSwapRequest, 'id' | 'createdAt' | 'updatedAt' | 'status'>) => ShiftSwapRequest;
+  respondToShiftSwapRequest: (requestId: string, accept: boolean, peerNote?: string) => void;
+  claimOpenCoverageRequest: (requestId: string, claimantEmployee: Employee) => void;
+  supervisorReviewSwap: (requestId: string, approved: boolean, supervisorName: string, notes?: string) => void;
+  cancelShiftSwapRequest: (requestId: string) => void;
+
   // Schedule & Data Admin
   updateEmployeeSchedule: (empId: string, day: DayOfWeek, start: string, end: string, isOff: boolean) => void;
+  updateEmployeePtoAllowance: (empId: string, allowance: number) => void;
   resetToDefaultData: () => void;
   importCSVData: (csvText: string) => { success: boolean; count: number; error?: string };
+  importXLSXData: (buffer: ArrayBuffer) => { success: boolean; count: number; error?: string };
   exportCSVData: () => string;
 }
 
 const ScheduleContext = createContext<ScheduleContextType | undefined>(undefined);
 
-const EMPLOYEES_STORAGE_KEY = 'sd_schedule_employees_v2';
-const ATTENDANCE_STORAGE_KEY = 'sd_schedule_attendance_v2';
-const TIME_ENTRIES_STORAGE_KEY = 'sd_schedule_time_entries_v2';
+const EMPLOYEES_STORAGE_KEY = 'sd_schedule_employees_v3';
+const ATTENDANCE_STORAGE_KEY = 'sd_schedule_attendance_v3';
+const TIME_ENTRIES_STORAGE_KEY = 'sd_schedule_time_entries_v3';
+const SHIFT_SWAPS_STORAGE_KEY = 'sd_schedule_shift_swaps_v3';
 
 export const ScheduleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // 1. Employees state
   const [employees, setEmployees] = useState<Employee[]>(() => {
     try {
-      const saved = localStorage.getItem(EMPLOYEES_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      const saved = localStorage.getItem(EMPLOYEES_STORAGE_KEY) || localStorage.getItem('sd_schedule_employees_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((emp: Employee) => ({
+            ...emp,
+            ptoAllowance: emp.ptoAllowance || (emp.role === 'manager' ? 25 : emp.role === 'supervisor' ? 22 : 20)
+          }));
+        }
+      }
     } catch {
       // fallback
     }
@@ -72,7 +95,12 @@ export const ScheduleProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(() => {
     try {
       const saved = localStorage.getItem(ATTENDANCE_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length >= 20) {
+          return parsed;
+        }
+      }
     } catch {
       // fallback
     }
@@ -88,6 +116,17 @@ export const ScheduleProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // fallback
     }
     return INITIAL_TIME_ENTRIES;
+  });
+
+  // 4. Shift Swap & Coverage Requests state
+  const [shiftSwapRequests, setShiftSwapRequests] = useState<ShiftSwapRequest[]>(() => {
+    try {
+      const saved = localStorage.getItem(SHIFT_SWAPS_STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+    return INITIAL_SHIFT_SWAPS;
   });
 
   // Current live system clock
@@ -151,6 +190,10 @@ export const ScheduleProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     localStorage.setItem(TIME_ENTRIES_STORAGE_KEY, JSON.stringify(timeEntries));
   }, [timeEntries]);
+
+  useEffect(() => {
+    localStorage.setItem(SHIFT_SWAPS_STORAGE_KEY, JSON.stringify(shiftSwapRequests));
+  }, [shiftSwapRequests]);
 
   // Attendance helpers
   const addAttendanceRecord = (recordData: Omit<AttendanceRecord, 'id' | 'createdAt'>) => {
@@ -360,100 +403,230 @@ export const ScheduleProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     );
   };
 
+  // Shift Swaps & Coverage Request operations
+  const createShiftSwapRequest = (
+    data: Omit<ShiftSwapRequest, 'id' | 'createdAt' | 'updatedAt' | 'status'>
+  ): ShiftSwapRequest => {
+    const nowIso = new Date().toISOString();
+    // If targeted at a coworker, goes to 'pending_coworker'. If open pool, also 'pending_coworker' to be claimed.
+    const newReq: ShiftSwapRequest = {
+      ...data,
+      id: `swap-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      status: 'pending_coworker',
+      createdAt: nowIso,
+      updatedAt: nowIso
+    };
+
+    setShiftSwapRequests(prev => [newReq, ...prev]);
+    return newReq;
+  };
+
+  const respondToShiftSwapRequest = (
+    requestId: string,
+    accept: boolean,
+    peerNote?: string
+  ) => {
+    const nowIso = new Date().toISOString();
+    setShiftSwapRequests(prev =>
+      prev.map(r => {
+        if (r.id !== requestId) return r;
+        if (accept) {
+          // Moves immediately to supervisor for one-click review & approval!
+          return {
+            ...r,
+            status: 'pending_supervisor',
+            peerAcceptedAt: nowIso,
+            peerResponseNote: peerNote || 'Coworker accepted the shift trade',
+            updatedAt: nowIso
+          };
+        } else {
+          return {
+            ...r,
+            status: 'rejected',
+            peerResponseNote: peerNote || 'Coworker declined the shift trade',
+            updatedAt: nowIso
+          };
+        }
+      })
+    );
+  };
+
+  const claimOpenCoverageRequest = (
+    requestId: string,
+    claimantEmployee: Employee
+  ) => {
+    const nowIso = new Date().toISOString();
+    setShiftSwapRequests(prev =>
+      prev.map(r => {
+        if (r.id !== requestId) return r;
+        return {
+          ...r,
+          targetEmployeeId: claimantEmployee.id,
+          targetEmployeeName: claimantEmployee.name,
+          isOpenPool: false,
+          status: 'pending_supervisor', // Forwarded to supervisor for one-click approval!
+          peerAcceptedAt: nowIso,
+          peerResponseNote: `Claimed by ${claimantEmployee.name} (${claimantEmployee.department})`,
+          updatedAt: nowIso
+        };
+      })
+    );
+  };
+
+  const supervisorReviewSwap = (
+    requestId: string,
+    approved: boolean,
+    supervisorName: string,
+    notes?: string
+  ) => {
+    const swapReq = shiftSwapRequests.find(r => r.id === requestId);
+    if (!swapReq) return;
+
+    const nowIso = new Date().toISOString();
+    const newStatus: SwapStatus = approved ? 'approved' : 'rejected';
+
+    setShiftSwapRequests(prev =>
+      prev.map(r =>
+        r.id === requestId
+          ? {
+              ...r,
+              status: newStatus,
+              supervisorName,
+              supervisorDecisionAt: nowIso,
+              supervisorNotes: notes || (approved ? `Approved by ${supervisorName}` : `Declined by ${supervisorName}`),
+              updatedAt: nowIso
+            }
+          : r
+      )
+    );
+
+    // If approved, atomically update employees' live schedules!
+    if (approved) {
+      setEmployees(prev => {
+        return prev.map(emp => {
+          // Requester update
+          if (emp.id === swapReq.requesterId) {
+            if (swapReq.requestType === 'swap' && swapReq.targetShift) {
+              // Requester works target colleague's shift
+              return {
+                ...emp,
+                schedule: {
+                  ...emp.schedule,
+                  [swapReq.requesterDay]: { ...swapReq.targetShift }
+                }
+              };
+            } else if (swapReq.requestType === 'coverage') {
+              // Requester's shift is covered -> mark Off for requesterDay
+              return {
+                ...emp,
+                schedule: {
+                  ...emp.schedule,
+                  [swapReq.requesterDay]: { start: 'Off', end: 'Off', isOff: true }
+                }
+              };
+            }
+          }
+
+          // Target (covering or trade partner) employee update
+          if (swapReq.targetEmployeeId && emp.id === swapReq.targetEmployeeId) {
+            if (swapReq.requestType === 'swap' && swapReq.targetDay) {
+              // Target employee works requester's original shift on targetDay
+              return {
+                ...emp,
+                schedule: {
+                  ...emp.schedule,
+                  [swapReq.targetDay]: { ...swapReq.requesterShift }
+                }
+              };
+            } else if (swapReq.requestType === 'coverage') {
+              // Target employee covers requester's shift on requesterDay
+              return {
+                ...emp,
+                schedule: {
+                  ...emp.schedule,
+                  [swapReq.requesterDay]: { ...swapReq.requesterShift }
+                }
+              };
+            }
+          }
+
+          return emp;
+        });
+      });
+
+      // Also record an audit attendance record
+      addAttendanceRecord({
+        employeeId: swapReq.requesterId,
+        employeeName: swapReq.requesterName,
+        department: swapReq.requesterDepartment,
+        type: 'PTO',
+        date: swapReq.requesterDate,
+        status: 'Approved',
+        reason: `Shift ${swapReq.requestType === 'swap' ? 'Swap' : 'Coverage'} with ${swapReq.targetEmployeeName || 'Teammate'}: ${swapReq.reason}`,
+        supervisorApprovedBy: supervisorName,
+        notes: notes || `Approved by ${supervisorName}. Shifts updated automatically.`
+      });
+    }
+  };
+
+  const cancelShiftSwapRequest = (requestId: string) => {
+    const nowIso = new Date().toISOString();
+    setShiftSwapRequests(prev =>
+      prev.map(r =>
+        r.id === requestId
+          ? { ...r, status: 'cancelled', updatedAt: nowIso }
+          : r
+      )
+    );
+  };
+
+  const updateEmployeePtoAllowance = (empId: string, allowance: number) => {
+    setEmployees(prev =>
+      prev.map(emp => {
+        if (emp.id !== empId) return emp;
+        return {
+          ...emp,
+          ptoAllowance: Math.max(0, allowance)
+        };
+      })
+    );
+  };
+
   const resetToDefaultData = () => {
     const defaultEmps = parseInitialEmployees();
     setEmployees(defaultEmps);
     setAttendanceRecords(INITIAL_ATTENDANCE_RECORDS);
     setTimeEntries(INITIAL_TIME_ENTRIES);
+    setShiftSwapRequests(INITIAL_SHIFT_SWAPS);
     localStorage.removeItem(EMPLOYEES_STORAGE_KEY);
     localStorage.removeItem(ATTENDANCE_STORAGE_KEY);
     localStorage.removeItem(TIME_ENTRIES_STORAGE_KEY);
+    localStorage.removeItem(SHIFT_SWAPS_STORAGE_KEY);
   };
 
   const importCSVData = (csvText: string) => {
     try {
-      const lines = csvText.trim().split('\n');
-      if (lines.length < 2) {
-        return { success: false, count: 0, error: 'CSV file is empty or missing data rows.' };
+      const result = parseCSVString(csvText);
+      if (result.success && result.employees && result.employees.length > 0) {
+        setEmployees(result.employees);
+        return { success: true, count: result.count };
       }
-
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      const nameIdx = headers.findIndex(h => h.includes('name'));
-      const emailIdx = headers.findIndex(h => h.includes('email'));
-      const deptIdx = headers.findIndex(h => h.includes('dept') || h.includes('department'));
-      const countryIdx = headers.findIndex(h => h.includes('country'));
-      const supIdx = headers.findIndex(h => h.includes('super'));
-      const mgrIdx = headers.findIndex(h => h.includes('manager'));
-
-      if (nameIdx === -1 || emailIdx === -1) {
-        return { success: false, count: 0, error: 'Missing required "Name" or "Email" columns.' };
-      }
-
-      const imported: Employee[] = [];
-      const days: DayOfWeek[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-      for (let i = 1; i < lines.length; i++) {
-        const row = lines[i].split(',').map(c => c.trim());
-        if (row.length < 2 || !row[nameIdx]) continue;
-
-        const name = row[nameIdx];
-        const email = row[emailIdx] || `${name.toLowerCase().replace(/\s+/g, '')}@singledigits.com`;
-        const department = deptIdx !== -1 ? row[deptIdx] : 'General';
-        const country = countryIdx !== -1 ? row[countryIdx] : 'United States';
-        const supervisor = supIdx !== -1 ? row[supIdx] : 'Manager';
-        const manager = mgrIdx !== -1 ? row[mgrIdx] : 'Tom Hardy';
-
-        // find schedule columns MonStart, MonEnd, etc.
-        const scheduleObj: Record<DayOfWeek, { start: string; end: string; isOff: boolean }> = {
-          Mon: { start: '9:00', end: '18:00', isOff: false },
-          Tue: { start: '9:00', end: '18:00', isOff: false },
-          Wed: { start: '9:00', end: '18:00', isOff: false },
-          Thu: { start: '9:00', end: '18:00', isOff: false },
-          Fri: { start: '9:00', end: '18:00', isOff: false },
-          Sat: { start: 'Off', end: 'Off', isOff: true },
-          Sun: { start: 'Off', end: 'Off', isOff: true }
-        };
-
-        days.forEach(d => {
-          const sIdx = headers.findIndex(h => h.includes(d.toLowerCase()) && h.includes('start'));
-          const eIdx = headers.findIndex(h => h.includes(d.toLowerCase()) && h.includes('end'));
-          if (sIdx !== -1 && eIdx !== -1 && row[sIdx] && row[eIdx]) {
-            const isOff = row[sIdx].toLowerCase() === 'off' || row[eIdx].toLowerCase() === 'off';
-            scheduleObj[d] = {
-              start: row[sIdx],
-              end: row[eIdx],
-              isOff
-            };
-          }
-        });
-
-        let daysOffCount = 0;
-        days.forEach(d => {
-          if (scheduleObj[d].isOff) daysOffCount++;
-        });
-
-        imported.push({
-          id: `emp-imp-${i}`,
-          name,
-          email,
-          username: email.split('@')[0],
-          department,
-          country,
-          supervisor,
-          manager,
-          daysOffCount,
-          role: 'employee',
-          schedule: scheduleObj as any
-        });
-      }
-
-      if (imported.length > 0) {
-        setEmployees(imported);
-        return { success: true, count: imported.length };
-      }
-      return { success: false, count: 0, error: 'No valid employee rows parsed.' };
+      return { success: false, count: 0, error: result.error || 'Failed to parse CSV schedule.' };
     } catch (err: any) {
-      return { success: false, count: 0, error: err?.message || 'Error parsing CSV' };
+      return { success: false, count: 0, error: err?.message || 'Error parsing CSV schedule' };
+    }
+  };
+
+  const importXLSXData = (buffer: ArrayBuffer) => {
+    try {
+      const result = parseXLSXFile(buffer);
+      if (result.success && result.employees && result.employees.length > 0) {
+        setEmployees(result.employees);
+        return { success: true, count: result.count };
+      }
+      return { success: false, count: 0, error: result.error || 'Failed to parse Excel schedule.' };
+    } catch (err: any) {
+      return { success: false, count: 0, error: err?.message || 'Error parsing Excel schedule file' };
     }
   };
 
@@ -501,6 +674,7 @@ export const ScheduleProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         employees,
         attendanceRecords,
         timeEntries,
+        shiftSwapRequests,
         selectedDay,
         setSelectedDay,
         selectedDate,
@@ -519,9 +693,16 @@ export const ScheduleProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         toggleBreak,
         getCurrentTimeEntry,
         getTimeEntriesForEmployee,
+        createShiftSwapRequest,
+        respondToShiftSwapRequest,
+        claimOpenCoverageRequest,
+        supervisorReviewSwap,
+        cancelShiftSwapRequest,
         updateEmployeeSchedule,
+        updateEmployeePtoAllowance,
         resetToDefaultData,
         importCSVData,
+        importXLSXData,
         exportCSVData
       }}
     >
